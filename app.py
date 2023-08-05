@@ -7,8 +7,11 @@ def count_street_lights(road_lenght: int) -> int:
 
 
 def calculate_illumination(distance: int) -> float:
+    illumination = 3**(-(distance/100)**2)
+    if illumination < 0.01:
+        illumination = 0
 
-    return 3**(-(distance/100)**2)
+    return illumination
 
 
 def find_longest_streak_in_list(list_of_numbers: list) -> list:
@@ -19,13 +22,10 @@ def find_longest_streak_in_list(list_of_numbers: list) -> list:
     for i in range(1, len(list_of_numbers)):
         if list_of_numbers[i] == list_of_numbers[i - 1] + 1:
             current_streak.append(list_of_numbers[i])
-        else:
             if len(current_streak) > len(longest_streak):
                 longest_streak = current_streak
+        else:
             current_streak = [list_of_numbers[i]]
-
-    if len(current_streak) > len(longest_streak):
-        longest_streak = current_streak
 
     return longest_streak
 
@@ -35,20 +35,24 @@ def calculate_list_median(list_of_numbers: list) -> float:
     return statistics.median(list_of_numbers)
 
 
-def find_index_of_darkest_street_light(not_working_street_lights: list) -> int:
-    darkest_light = calculate_list_median(
-        find_longest_streak_in_list(not_working_street_lights))
+def find_index_of_darkest_street_light(road_length: int, not_working_street_lights: list) -> int:
+    if road_length < 0 or road_length > 2000000:
+        return 'Wrong imput: road range can be from 0 to 2000000m'
+    not_working_street_lights.sort()
+    logest_streak_of_lights = find_longest_streak_in_list(
+        not_working_street_lights)
+    if logest_streak_of_lights[0] == 0:
+        darkest_light = not_working_street_lights[0]
+    elif logest_streak_of_lights[-1] + 1 == count_street_lights(road_length):
+        darkest_light = not_working_street_lights[-1]
+    elif len(logest_streak_of_lights) > 20:
+        # from 10 illumination < 0.01
+        darkest_light = not_working_street_lights[10]
+    else:
+        darkest_light = calculate_list_median(
+            logest_streak_of_lights)
 
     return int(darkest_light)
-
-
-def calculate_illumination_of_darkest_light(not_working_street_lights: list) -> float:
-    steps_to_working_light = (len(
-        find_longest_streak_in_list(not_working_street_lights))/2)
-    if steps_to_working_light % 1 == 0.5:
-        steps_to_working_light += 0.5
-
-    return calculate_illumination(steps_to_working_light*20)
 
 
 def find_minimal_number_of_light_bulbs_to_replace(not_working_street_lights: list) -> int:
@@ -59,10 +63,10 @@ def find_minimal_number_of_light_bulbs_to_replace(not_working_street_lights: lis
 
 
 if __name__ == "__main__":
-    print(find_index_of_darkest_street_light(
-        not_working_street_lights=[6, 7, 5, 3, 12, 11, 10, 22, 23, 24, 25]))
-    print(calculate_illumination_of_darkest_light(
-        not_working_street_lights=[6, 7, 5, 3, 12, 11, 10, 22, 23, 24, 26, 25]))
-    print(calculate_illumination(60))
-    print(find_minimal_number_of_light_bulbs_to_replace(
-        not_working_street_lights=[6, 7, 5, 3, 12, 11, 10, 22, 23, 24, 26, 25]))
+    assert find_index_of_darkest_street_light(road_length=460,
+                                              not_working_street_lights=[6, 7, 5, 3, 12, 11, 10, 22, 23, 24, 25]) == 23
+    assert find_minimal_number_of_light_bulbs_to_replace(
+        not_working_street_lights=[6, 7, 5, 3, 12, 11, 10, 22, 23, 24, 26, 25]) == 12
+    assert find_index_of_darkest_street_light(
+        road_length=200, not_working_street_lights=[4, 5, 6]) == 5
+    print("ALL TESTS PASSED")
